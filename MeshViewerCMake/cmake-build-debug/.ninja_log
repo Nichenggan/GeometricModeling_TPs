@@ -1,0 +1,13 @@
+# ninja log v6
+6	74	1774622544781369596	CMakeFiles/MeshViewer.dir/myHalfedge.cpp.o	7596345f91a01e3f
+7	89	1774622544782061541	CMakeFiles/MeshViewer.dir/myVertex.cpp.o	bf68967bab5f3ad1
+7	123	1774622544781742006	CMakeFiles/MeshViewer.dir/myFace.cpp.o	e0ba2bbd88f8df31
+6	443	1774622544781512718	CMakeFiles/MeshViewer.dir/myVector3D.cpp.o	6553f5ca4a81e6c1
+1	47	1774622668264315925	build.ninja	e9f3c668df71538b
+6	436	1774622544781630216	CMakeFiles/MeshViewer.dir/myPoint3D.cpp.o	1a7f12ae9bdbb8ea
+7	582	1774622544781854545	CMakeFiles/MeshViewer.dir/myMesh.cpp.o	c16c84f1b0486e59
+6	737	1774622544780882147	CMakeFiles/MeshViewer.dir/main.cpp.o	fe630d1f473caf22
+743	904	1774622545518345305	MeshViewer	b7ff0315531e64b2
+2	62	1774622668264315925	build.ninja	e9f3c668df71538b
+6	568	1774622977138996437	CMakeFiles/MeshViewer.dir/main.cpp.o	fe630d1f473caf22
+574	719	1774622977706689073	MeshViewer	b7ff0315531e64b2
