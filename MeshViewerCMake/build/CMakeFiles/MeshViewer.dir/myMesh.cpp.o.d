@@ -1,8 +1,8 @@
 CMakeFiles/MeshViewer.dir/myMesh.cpp.o: \
-  /Users/aminoc/Desktop/personal/E4FIS2/geometric/MeshViewerCMake/myMesh.cpp \
-  /Users/aminoc/Desktop/personal/E4FIS2/geometric/MeshViewerCMake/myMesh.h \
-  /Users/aminoc/Desktop/personal/E4FIS2/geometric/MeshViewerCMake/myFace.h \
-  /Users/aminoc/Desktop/personal/E4FIS2/geometric/MeshViewerCMake/myHalfedge.h \
+  /Users/aminoc/Desktop/personal/E4FIS2/geometric/works/MeshViewerCMake/myMesh.cpp \
+  /Users/aminoc/Desktop/personal/E4FIS2/geometric/works/MeshViewerCMake/myMesh.h \
+  /Users/aminoc/Desktop/personal/E4FIS2/geometric/works/MeshViewerCMake/myFace.h \
+  /Users/aminoc/Desktop/personal/E4FIS2/geometric/works/MeshViewerCMake/myHalfedge.h \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.2.sdk/usr/include/c++/v1/stdio.h \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.2.sdk/usr/include/c++/v1/__config \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.2.sdk/usr/include/c++/v1/__config_site \
@@ -41,8 +41,8 @@ CMakeFiles/MeshViewer.dir/myMesh.cpp.o: \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.2.sdk/usr/include/_ctermid.h \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.2.sdk/usr/include/sys/_types/_off_t.h \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.2.sdk/usr/include/sys/_types/_ssize_t.h \
-  /Users/aminoc/Desktop/personal/E4FIS2/geometric/MeshViewerCMake/myVertex.h \
-  /Users/aminoc/Desktop/personal/E4FIS2/geometric/MeshViewerCMake/myPoint3D.h \
+  /Users/aminoc/Desktop/personal/E4FIS2/geometric/works/MeshViewerCMake/myVertex.h \
+  /Users/aminoc/Desktop/personal/E4FIS2/geometric/works/MeshViewerCMake/myPoint3D.h \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.2.sdk/usr/include/c++/v1/math.h \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.2.sdk/usr/include/math.h \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.2.sdk/usr/include/c++/v1/__math/abs.h \
@@ -989,4 +989,4 @@ CMakeFiles/MeshViewer.dir/myMesh.cpp.o: \
   /Library/Developer/CommandLineTools/SDKs/MacOSX15.sdk/System/Library/Frameworks/OpenGL.framework/Headers/OpenGLAvailability.h \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.2.sdk/usr/include/os/availability.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX15.sdk/System/Library/Frameworks/OpenGL.framework/Headers/gl.h \
-  /Users/aminoc/Desktop/personal/E4FIS2/geometric/MeshViewerCMake/myVector3D.h
+  /Users/aminoc/Desktop/personal/E4FIS2/geometric/works/MeshViewerCMake/myVector3D.h

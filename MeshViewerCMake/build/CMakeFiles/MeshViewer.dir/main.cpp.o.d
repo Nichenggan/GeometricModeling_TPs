@@ -1,5 +1,5 @@
 CMakeFiles/MeshViewer.dir/main.cpp.o: \
-  /Users/aminoc/Desktop/personal/E4FIS2/geometric/MeshViewerCMake/main.cpp \
+  /Users/aminoc/Desktop/personal/E4FIS2/geometric/works/MeshViewerCMake/main.cpp \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.2.sdk/usr/include/c++/v1/fstream \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.2.sdk/usr/include/c++/v1/__algorithm/max.h \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.2.sdk/usr/include/c++/v1/__algorithm/comp.h \
@@ -1294,12 +1294,12 @@ CMakeFiles/MeshViewer.dir/main.cpp.o: \
   /opt/homebrew/include/glm/gtc/../mat4x2.hpp \
   /opt/homebrew/include/glm/gtc/../mat4x3.hpp \
   /opt/homebrew/include/glm/gtc/type_ptr.inl \
-  /Users/aminoc/Desktop/personal/E4FIS2/geometric/MeshViewerCMake/myPoint3D.h \
-  /Users/aminoc/Desktop/personal/E4FIS2/geometric/MeshViewerCMake/myVector3D.h \
-  /Users/aminoc/Desktop/personal/E4FIS2/geometric/MeshViewerCMake/myMesh.h \
-  /Users/aminoc/Desktop/personal/E4FIS2/geometric/MeshViewerCMake/myFace.h \
-  /Users/aminoc/Desktop/personal/E4FIS2/geometric/MeshViewerCMake/myHalfedge.h \
-  /Users/aminoc/Desktop/personal/E4FIS2/geometric/MeshViewerCMake/myVertex.h \
-  /Users/aminoc/Desktop/personal/E4FIS2/geometric/MeshViewerCMake/helperFunctions.h \
+  /Users/aminoc/Desktop/personal/E4FIS2/geometric/works/MeshViewerCMake/myPoint3D.h \
+  /Users/aminoc/Desktop/personal/E4FIS2/geometric/works/MeshViewerCMake/myVector3D.h \
+  /Users/aminoc/Desktop/personal/E4FIS2/geometric/works/MeshViewerCMake/myMesh.h \
+  /Users/aminoc/Desktop/personal/E4FIS2/geometric/works/MeshViewerCMake/myFace.h \
+  /Users/aminoc/Desktop/personal/E4FIS2/geometric/works/MeshViewerCMake/myHalfedge.h \
+  /Users/aminoc/Desktop/personal/E4FIS2/geometric/works/MeshViewerCMake/myVertex.h \
+  /Users/aminoc/Desktop/personal/E4FIS2/geometric/works/MeshViewerCMake/helperFunctions.h \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.2.sdk/usr/include/c++/v1/iostream \
   /Library/Developer/CommandLineTools/SDKs/MacOSX15.sdk/System/Library/Frameworks/GLUT.framework/Headers/glut.h

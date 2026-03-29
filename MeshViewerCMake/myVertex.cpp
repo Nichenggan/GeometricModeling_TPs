@@ -12,6 +12,7 @@ myVertex::myVertex(void)
 
 myVertex::~myVertex(void)
 {
+	if (point) delete point;
 	if (normal) delete normal;
 }
 

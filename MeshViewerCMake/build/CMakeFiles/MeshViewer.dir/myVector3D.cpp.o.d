@@ -1,6 +1,6 @@
 CMakeFiles/MeshViewer.dir/myVector3D.cpp.o: \
-  /Users/aminoc/Desktop/personal/E4FIS2/geometric/MeshViewerCMake/myVector3D.cpp \
-  /Users/aminoc/Desktop/personal/E4FIS2/geometric/MeshViewerCMake/myVector3D.h \
+  /Users/aminoc/Desktop/personal/E4FIS2/geometric/works/MeshViewerCMake/myVector3D.cpp \
+  /Users/aminoc/Desktop/personal/E4FIS2/geometric/works/MeshViewerCMake/myVector3D.h \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.2.sdk/usr/include/c++/v1/math.h \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.2.sdk/usr/include/c++/v1/__config \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.2.sdk/usr/include/c++/v1/__config_site \
@@ -247,7 +247,7 @@ CMakeFiles/MeshViewer.dir/myVector3D.cpp.o: \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.2.sdk/usr/include/_abort.h \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.2.sdk/usr/include/sys/_types/_dev_t.h \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.2.sdk/usr/include/sys/_types/_mode_t.h \
-  /Users/aminoc/Desktop/personal/E4FIS2/geometric/MeshViewerCMake/myPoint3D.h \
+  /Users/aminoc/Desktop/personal/E4FIS2/geometric/works/MeshViewerCMake/myPoint3D.h \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.2.sdk/usr/include/c++/v1/iostream \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.2.sdk/usr/include/c++/v1/ios \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.2.sdk/usr/include/c++/v1/__fwd/ios.h \

@@ -1,6 +1,6 @@
 CMakeFiles/MeshViewer.dir/myHalfedge.cpp.o: \
-  /Users/aminoc/Desktop/personal/E4FIS2/geometric/MeshViewerCMake/myHalfedge.cpp \
-  /Users/aminoc/Desktop/personal/E4FIS2/geometric/MeshViewerCMake/myHalfedge.h \
+  /Users/aminoc/Desktop/personal/E4FIS2/geometric/works/MeshViewerCMake/myHalfedge.cpp \
+  /Users/aminoc/Desktop/personal/E4FIS2/geometric/works/MeshViewerCMake/myHalfedge.h \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.2.sdk/usr/include/c++/v1/stdio.h \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.2.sdk/usr/include/c++/v1/__config \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.2.sdk/usr/include/c++/v1/__config_site \
