@@ -129,16 +129,15 @@ bool myMesh::readFile(std::string filename)
 
 void myMesh::computeNormals()
 {
-	myHalfedge *e = vertices[0]->originof;
-	myHalfedge *step = e;
-	myVector3D *normal = new myVector3D(0, 0, 0);
-	int counter = 0;
-	do {
-		myPoint3D fn = step -> adjacent_face -> normal;
-		normal -> dX += fn -> dX;
-		counter++;
-		step = step -> twin -> next;
-	} while (e != step);
+	for (unsigned int i = 0; i < faces.size(); ++i) {
+		myFace *f = faces[i];
+		if (f && f->adjacent_halfedge) f->computeNormal();
+	}
+
+	for (unsigned int i = 0; i < vertices.size(); ++i) {
+		myVertex *v = vertices[i];
+		if (v && v->originof) v->computeNormal();
+	}
 }
 
 void myMesh::normalize()
