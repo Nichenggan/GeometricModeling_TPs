@@ -50,6 +50,8 @@ enum {
 enum { VAO_TRIANGLES_NORMSPERVERTEX = 0, VAO_TRIANGLES_NORMSPERFACE, VAO_EDGES, VAO_VERTICES, VAO_NORMALS };
 
 
+int currentModifiers = 0; // saved in mouse callback, used in motion callback to avoid glutGetModifiers outside core input
+
 bool smooth = false; //smooth = true means smooth normals, default false means face-wise normals.
 bool drawmesh = true;
 bool drawwireframe = false;
@@ -385,6 +387,7 @@ void mouse(int button, int state, int x, int y)
 	GLUTmouse[1] = Glut_h - y;
 
 	int mode = glutGetModifiers();
+	currentModifiers = mode;
 	// Process mouse button event
 	if (state == GLUT_DOWN)
 	{
@@ -426,7 +429,7 @@ void mousedrag(int x, int y)
 	GLUTmouse[0] = x;
 	GLUTmouse[1] = y;
 
-	if (glutGetModifiers() == GLUT_ACTIVE_SHIFT) return;
+	if (currentModifiers == GLUT_ACTIVE_SHIFT) return;
 	if ((dx == 0 && dy == 0) || !button_pressed) return;
 
 	double vx = (double)dx / (double)Glut_w;

@@ -257,7 +257,7 @@ void display()
 			double res2 = direction * *e->twin->adjacent_face->normal;
 
 			//if the two normals are in opposite directions, then the edge is a silhouette edge.
-			if( res1 < 0 != res2 < 0 )
+			if( res1 * res2 < 0 )
 			{
 				silhouette_edges.push_back(v1->index);
 				silhouette_edges.push_back(v2->index);
