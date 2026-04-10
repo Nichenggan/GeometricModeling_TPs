@@ -81,9 +81,42 @@ bool myMesh::readFile(std::string filename)
 		else if (t == "s") {}
 		else if (t == "f")
 		{
-			cout << "f"; 
-			while (myline >> u) cout << " " << atoi((u.substr(0, u.find("/"))).c_str());
-			cout << endl;
+			myFace *f = new myFace();
+			faceids.clear();
+			while (myline >> u) {
+				int v_idx = atoi((u.substr(0, u.find("/"))).c_str());
+					faceids.push_back(v_idx - 1);
+			}
+			hedges = new myHalfedge*[faceids.size()];
+			for (unsigned int i = 0; i < faceids.size(); i++) {
+				int v_start = faceids[i];
+				int v_end = faceids[(i + 1) % faceids.size()];
+
+				myHalfedge *e = new myHalfedge();
+				hedges[i] = e;
+				e->source = vertices[faceids[i]];
+				vertices[faceids[i]]->originof = e;
+				e->adjacent_face = f;
+				halfedges.push_back(e);
+
+				it = twin_map.find(make_pair(v_end, v_start));
+				if (it != twin_map.end()) {
+					myHalfedge *twin_e = it->second;
+					e->twin = twin_e;
+					twin_e->twin = e;
+				}else {
+					pair<int, int> my_key(v_start, v_end);
+					twin_map[my_key] = e;
+				} //used AI on this part to know how to use map to find twin edge, and it works!
+			}
+			for (unsigned int i = 0; i < faceids.size(); i++) {
+				hedges[i]->next = hedges[(i + 1) % faceids.size()];
+				hedges[(i + 1) % faceids.size()]->prev = hedges[i];
+			}
+			f->adjacent_halfedge = hedges[0];//Reminder:do not use faceid[0] to access vertex
+			faces.push_back(f);
+			delete[] hedges;
+
 		}
 	}
 
@@ -96,7 +129,16 @@ bool myMesh::readFile(std::string filename)
 
 void myMesh::computeNormals()
 {
-	/**** TODO ****/
+	myHalfedge *e = vertices[0]->originof;
+	myHalfedge *step = e;
+	myVector3D *normal = new myVector3D(0, 0, 0);
+	int counter = 0;
+	do {
+		myPoint3D fn = step -> adjacent_face -> normal;
+		normal -> dX += fn -> dX;
+		counter++;
+		step = step -> twin -> next;
+	} while (e != step);
 }
 
 void myMesh::normalize()
