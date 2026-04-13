@@ -236,58 +236,65 @@ void display()
 	}
 
 	if (drawsilhouette)
-	{
-		glLineWidth(4.0);
-		color[0] = 1.0f, color[1] = 0.0f, color[2] = 0.0f, color[3] = 1.0f;		
-		glUniform4fv(glGetUniformLocation(shaderprogram, "kd"), 1, &color[0]);
+{
+    glLineWidth(5.0);
+    color[0] = 1.0f, color[1] = 0.0f, color[2] = 0.0f, color[3] = 1.0f;
+    glUniform4fv(glGetUniformLocation(shaderprogram, "kd"), 1, &color[0]);
 
-		vector <GLuint> silhouette_edges;
-		for (vector<myHalfedge *>::iterator it = m->halfedges.begin(); it != m->halfedges.end(); it++)
-		{
-			myHalfedge *e = (*it);
-			myVertex *v1 = (*it)->source;
-			if ((*it)->twin == NULL) continue;
-			myVertex *v2 = (*it)->twin->source;
+    vector <GLuint> silhouette_edges;
+    for (vector<myHalfedge *>::iterator it = m->halfedges.begin(); it != m->halfedges.end(); it++)
+    {
+    	myHalfedge *e = (*it);
+    	myVertex *v1 = (*it)->source;
+    	if ((*it)->twin == NULL) continue;
+    	myVertex *v2 = (*it)->twin->source;
 
-			myVector3D direction = camera_eye - (*v1->point + *v2->point) * 0.5;
 
-			if (e->adjacent_face->normal == NULL) e->adjacent_face->computeNormal();
+        myVector3D direction = camera_eye - (*v1->point + *v2->point) * 0.5;
 
-			double res1 = direction * *e->adjacent_face->normal;
-			double res2 = direction * *e->twin->adjacent_face->normal;
+        double res1 = direction * *(e->adjacent_face->normal);
+        double res2 = direction * *(e->twin->adjacent_face->normal);
 
-			//if the two normals are in opposite directions, then the edge is a silhouette edge.
-			if( res1 * res2 < 0 )
-			{
-				silhouette_edges.push_back(v1->index);
-				silhouette_edges.push_back(v2->index);
-			}				
-		}
+        if ( res1 * res2 <= 0 )
+        {
+            silhouette_edges.push_back(v1->index);
+            silhouette_edges.push_back(v2->index);
+        }
+    }
 
-		GLuint silhouette_edges_buffer;
-		glGenBuffers(1, &silhouette_edges_buffer);
+    if (!silhouette_edges.empty())
+    {
+        //Fixed here with the help of AI because it didnt work before, and now it works!
+        GLuint silhouette_vao;
+        glGenVertexArrays(1, &silhouette_vao);
+        glBindVertexArray(silhouette_vao);
 
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, silhouette_edges_buffer);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, silhouette_edges.size() * sizeof(GLuint),
-			&silhouette_edges[0], GL_STATIC_DRAW);
+        GLuint silhouette_edges_buffer;
+        glGenBuffers(1, &silhouette_edges_buffer);
 
-		glBindBuffer(GL_ARRAY_BUFFER, buffers[BUFFER_VERTICES]);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-		glEnableVertexAttribArray(0);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, silhouette_edges_buffer);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, silhouette_edges.size() * sizeof(GLuint),
+            &silhouette_edges[0], GL_STATIC_DRAW);
 
-		glBindBuffer(GL_ARRAY_BUFFER, buffers[BUFFER_NORMALS_PERVERTEX]);
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
-		glEnableVertexAttribArray(1);
+        glBindBuffer(GL_ARRAY_BUFFER, buffers[BUFFER_VERTICES]);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+        glEnableVertexAttribArray(0);
 
-		glDrawElements(GL_LINES, silhouette_edges.size(), GL_UNSIGNED_INT, 0);
+        glBindBuffer(GL_ARRAY_BUFFER, buffers[BUFFER_NORMALS_PERVERTEX]);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+        glEnableVertexAttribArray(1);
 
-		glDeleteBuffers(1, &silhouette_edges_buffer);
- 	}
+        glDrawElements(GL_LINES, silhouette_edges.size(), GL_UNSIGNED_INT, 0);
 
+        glBindVertexArray(0);
+        glDeleteVertexArrays(1, &silhouette_vao);
+        glDeleteBuffers(1, &silhouette_edges_buffer);
+    }
+}
 	if (drawnormals && vaos[VAO_NORMALS])
 	{
 		glLineWidth(1.0);
-		color[0] = 0.2f, color[1] = 0.2f, color[2] = 0.2f, color[3] = 1.0f;		
+		color[0] = 0.2f, color[1] = 0.2f, color[2] = 0.2f, color[3] = 1.0f;
 		glUniform4fv(glGetUniformLocation(shaderprogram, "kd"), 1, &color[0]);
 
 		glBindVertexArray(vaos[VAO_NORMALS]);
@@ -349,6 +356,7 @@ void display()
 		glUseProgram(shaderprogram);
 	}
 
+
 	// Display mesh info and FPS in window title (Core Profile compatible)
 	string title = "MeshViewer | Vertices: " + to_string(m->vertices.size())
 		+ "  Halfedges: " + to_string(m->halfedges.size())
@@ -366,7 +374,7 @@ void initMesh()
 	closest_edge = NULL;
 	closest_vertex = NULL;
 	closest_face = NULL;
-	
+
 	cout << "Reading mesh from file...\n";
 	m = new myMesh();
 	if (m->readFile("apple.obj")) {
