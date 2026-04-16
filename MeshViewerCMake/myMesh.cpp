@@ -6,6 +6,7 @@
 #include <utility>
 #include <GL/glew.h>
 #include "myVector3D.h"
+#include <set>
 
 using namespace std;
 
@@ -210,13 +211,165 @@ void myMesh::simplify(myVertex *)
 
 void myMesh::triangulate()
 {
-	/**** TODO ****/
+	size_t originalFaceCount = faces.size();
+	for (size_t i = 0; i < originalFaceCount; ++i) {
+		triangulate(faces[i]);
+	}
+	computeNormals();
 }
+
+bool ifPointContainTriangle(myPoint3D* p1, myPoint3D* p2, myPoint3D* p3, myPoint3D* p) {
+	if (!p1 || !p2 || !p3 || !p) return false;
+
+	// Build edge vectors and point vectors
+	myVector3D vAB = (*p2) - (*p1);
+	myVector3D vAP = (*p) - (*p1);
+
+	myVector3D vBC = (*p3) - (*p2);
+	myVector3D vBP = (*p) - (*p2);
+
+	myVector3D vCA = (*p1) - (*p3);
+	myVector3D vCP = (*p) - (*p3);
+
+	// Cross products for each edge with the vector to point
+	myVector3D c1 = vAB.crossproduct(vAP);
+	myVector3D c2 = vBC.crossproduct(vBP);
+	myVector3D c3 = vCA.crossproduct(vCP);
+
+
+	// Check that all cross products point to the same general direction:
+	// dot products between them should be non-negative.
+	double d12 = c1 * c2;
+	double d13 = c1 * c3;
+	double d23 = c2 * c3;
+
+	return (d12 >= 0) && (d13 >= 0) && (d23 >= 0);
+}
+
+bool ifContainTriangle(myPoint3D* p1, myPoint3D* p2, myPoint3D* p3, const std::set<myVertex*>& vertices) {
+	for (const myVertex* v : vertices) {
+		if (!v || !v->point) continue;
+		// skip the triangle's own vertices
+		if (v->point == p1 || v->point == p2 || v->point == p3) continue;
+
+		if (ifPointContainTriangle(p1, p2, p3, v->point)) {
+			return true;
+		}
+	}
+	return false;
+}
+
+bool ifPointsConvex(myPoint3D* p1, myPoint3D* p2, myPoint3D* p3, myVector3D* normal) {
+
+	myVector3D v12 = (*p2) - (*p1);
+	myVector3D v23 = (*p3) - (*p2);
+
+	myVector3D cross = v12.crossproduct(v23);
+	double product = cross * *normal;
+	return product > 0;
+}
+
 
 //return false if already triangle, true othewise.
 bool myMesh::triangulate(myFace *f)
 {
-	/**** TODO ****/
-	return false;
+	/**** keep existing triangulation logic ****/
+
+	// Set the Vertex set
+	bool isCut = false;
+	std::set<myVertex*> vertexSet;
+	myHalfedge *curr = f->adjacent_halfedge;
+	do {
+		vertexSet.insert(curr->source);
+		curr = curr->next;
+	} while(curr != f->adjacent_halfedge);
+	if (vertexSet.size() == 3) return false;
+
+
+	myHalfedge *e1 = f->adjacent_halfedge;
+	myHalfedge *e2 = e1->next;
+	myHalfedge *e3 = e2->next;
+	while (vertexSet.size() >= 3) {
+		// reset cut flag for this iteration
+		isCut = false;
+		if (!ifContainTriangle(e1->source->point, e2->source->point, e3->source->point, vertexSet) && vertexSet.find(e2->source) != vertexSet.end()) {
+			// Split the face into two faces by edge e1->e3
+			if (ifPointsConvex(e1->source->point, e2->source->point, e3->source->point, f->normal)) {
+				if (vertexSet.size() == 3) {
+				    //last triangle, just close the loop and assign face
+				    e1->next = e2;
+				    e2->prev = e1;
+				    e2->next = e3;
+				    e3->prev = e2;
+				    e3->next = e1;
+				    e1->prev = e3;
+
+				    e1->adjacent_face = f;
+				    e2->adjacent_face = f;
+				    e3->adjacent_face = f;
+
+				    f->adjacent_halfedge = e1;
+
+				    vertexSet.clear();
+				}
+				else {
+				    myHalfedge *e_prev = e1->prev;
+
+				    myFace *newFace = new myFace();
+				    myHalfedge *newEdge = new myHalfedge();
+				    myHalfedge *newEdgeTwin = new myHalfedge();
+
+
+				    newEdge->source = e3->source;
+				    newEdgeTwin->source = e1->source;
+				    newEdge->twin = newEdgeTwin;
+				    newEdgeTwin->twin = newEdge;
+
+				    newEdge->adjacent_face = newFace;
+				    e1->adjacent_face = newFace;
+				    e2->adjacent_face = newFace;
+
+				    e1->next = e2;
+				    e2->prev = e1;
+				    e2->next = newEdge;
+				    newEdge->prev = e2;
+				    newEdge->next = e1;
+				    e1->prev = newEdge;
+
+				    newFace->adjacent_halfedge = e1;
+				    newEdgeTwin->adjacent_face = f;
+
+				    e_prev->next = newEdgeTwin;
+				    newEdgeTwin->prev = e_prev;
+
+				    newEdgeTwin->next = e3;
+				    e3->prev = newEdgeTwin;
+
+				    f->adjacent_halfedge = newEdgeTwin;
+
+
+				    faces.push_back(newFace);
+				    halfedges.push_back(newEdge);
+				    halfedges.push_back(newEdgeTwin);
+
+				    vertexSet.erase(e2->source);
+
+
+				    e1 = newEdgeTwin;
+				    e2 = e1->next;
+				    e3 = e2->next;
+					isCut = true;
+				}
+			}
+		}
+		if(!isCut) {
+			e1 = e1->next;
+			e2 = e2->next;
+			e3 = e3->next;
+		}
+
+	}
+	// If we reached here the face has been (or attempted to be) triangulated
+	return true;
 }
 

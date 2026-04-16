@@ -377,7 +377,7 @@ void initMesh()
 
 	cout << "Reading mesh from file...\n";
 	m = new myMesh();
-	if (m->readFile("apple.obj")) {
+	if (m->readFile("cube.obj")) {
 		m->computeNormals();
 		makeBuffers(m);
 	}
