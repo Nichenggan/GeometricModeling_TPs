@@ -18,20 +18,29 @@ myVertex::~myVertex(void)
 
 void myVertex::computeNormal()
 {
-	myHalfedge *h = originof;
-	myHalfedge *step = h;
-	normal->clear();
-	int counter = 0;
-	do {
-		myVector3D* fn = step -> adjacent_face -> normal;
-		normal -> dX += fn -> dX;
-		normal -> dY += fn -> dY;
-		normal -> dZ += fn -> dZ;
-		counter++;
-		step = step -> twin -> next;
-	} while (h != step);
-	normal->dX /= counter;
-	normal->dY /= counter;
-	normal->dZ /= counter;
-	normal->normalize();
+		if (!originof) return;
+		myHalfedge *h = originof;
+		myHalfedge *step = h;
+		normal->clear();
+		int counter = 0;
+
+		do {
+			if (step->adjacent_face && step->adjacent_face->normal) {
+				normal->dX += step->adjacent_face->normal->dX;
+				normal->dY += step->adjacent_face->normal->dY;
+				normal->dZ += step->adjacent_face->normal->dZ;
+				counter++;
+			}
+			if (!step->twin) break;  // to fix some obj issues
+			step = step->twin->next;
+			if (!step) break;
+		} while (step != h);
+
+		if (counter == 0) return;
+		normal->dX /= counter;
+		normal->dY /= counter;
+		normal->dZ /= counter;
+		normal->normalize();
 }
+
+

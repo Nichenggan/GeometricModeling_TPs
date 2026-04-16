@@ -66,6 +66,7 @@ bool myMesh::readFile(std::string filename)
 	while (getline(fin, s))
 	{
 		stringstream myline(s);
+		t = "";
 		myline >> t;
 		if (t == "g") {}
 		else if (t == "v")
@@ -117,7 +118,6 @@ bool myMesh::readFile(std::string filename)
 			f->adjacent_halfedge = hedges[0];//Reminder:do not use faceid[0] to access vertex
 			faces.push_back(f);
 			delete[] hedges;
-
 		}
 	}
 
@@ -275,6 +275,9 @@ bool myMesh::triangulate(myFace *f)
 {
 	/**** keep existing triangulation logic ****/
 
+	// Compute face normal BEFORE triangulating (needed for convexity check)
+	f->computeNormal();
+
 	// Set the Vertex set
 	bool isCut = false;
 	std::set<myVertex*> vertexSet;
@@ -289,6 +292,8 @@ bool myMesh::triangulate(myFace *f)
 	myHalfedge *e1 = f->adjacent_halfedge;
 	myHalfedge *e2 = e1->next;
 	myHalfedge *e3 = e2->next;
+	int totalIter = 0;
+	int maxTotalIter = (int)vertexSet.size() * (int)vertexSet.size() * 4;
 	while (vertexSet.size() >= 3) {
 		// reset cut flag for this iteration
 		isCut = false;
@@ -366,6 +371,11 @@ bool myMesh::triangulate(myFace *f)
 			e1 = e1->next;
 			e2 = e2->next;
 			e3 = e3->next;
+			totalIter++;
+			if (totalIter > maxTotalIter) {
+				cout << "Warning: triangulation gave up on a face (likely non-planar or degenerate)." << endl;
+				break;
+			}
 		}
 
 	}
