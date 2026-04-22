@@ -377,8 +377,8 @@ void initMesh()
 
 	cout << "Reading mesh from file...\n";
 	m = new myMesh();
-	if (m->readFile("concave_holes.obj")) {
-		// m->triangulate();
+	if (m->readFile("c_gear.obj")) {
+		m->triangulate(); // Optional: Triangulate the mesh first to show the gear
 		m->computeNormals();
 		makeBuffers(m);
 	}

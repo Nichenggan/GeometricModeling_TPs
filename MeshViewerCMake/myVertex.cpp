@@ -31,7 +31,7 @@ void myVertex::computeNormal()
 				normal->dZ += step->adjacent_face->normal->dZ;
 				counter++;
 			}
-			if (!step->twin) break;  // to fix some obj issues
+			if (!step->twin) break;  // to fix some obj issues，some of them don't have twin edge, so we just break the loop if there is no twin edge, otherwise it will cause infinite loop
 			step = step->twin->next;
 			if (!step) break;
 		} while (step != h);
