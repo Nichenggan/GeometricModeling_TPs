@@ -582,6 +582,7 @@ void initInterface(int argc, char* argv[])
 	glutAddMenuEntry("Inflate", MENU_INFLATE);
 	glutAddMenuEntry("Smoothen", MENU_SMOOTHEN);
 	glutAddMenuEntry("Simplification", MENU_SIMPLIFY);
+	glutAddMenuEntry("Revolution", MENU_REVOLUTION);
 
 	int sm3 = glutCreateMenu(menu);
 	glutAddMenuEntry("Closest Edge", MENU_SELECTEDGE);

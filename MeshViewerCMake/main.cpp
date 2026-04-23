@@ -19,7 +19,8 @@ enum MENU { MENU_CATMULLCLARK, MENU_DRAWWIREFRAME, MENU_EXIT, MENU_DRAWMESH, MEN
 	MENU_CONTRACTEDGE, MENU_CONTRACTFACE, MENU_DRAWCREASE, MENU_DRAWSILHOUETTE, 
 	MENU_GENERATE, MENU_CUT, MENU_INFLATE, MENU_SELECTEDGE, MENU_SELECTFACE, MENU_SELECTVERTEX,
 	MENU_SHADINGTYPE, MENU_SMOOTHEN, MENU_SPLITEDGE, MENU_SPLITFACE, MENU_SELECTCLEAR, 
-	MENU_TRIANGULATE, MENU_UNDO, MENU_WRITE, MENU_SIMPLIFY, MENU_DRAWNORMALS, MENU_OPENFILE
+	MENU_TRIANGULATE, MENU_UNDO, MENU_WRITE, MENU_SIMPLIFY, MENU_DRAWNORMALS, MENU_OPENFILE,
+	MENU_REVOLUTION
 };
  
 myMesh *m;
@@ -155,10 +156,17 @@ void menu(int item)
 			break;
 		}
 	case MENU_SIMPLIFY:
-	 	{
+ 	{
 			m->simplify();
 			break;
-	 	}
+ 	}
+	case MENU_REVOLUTION:
+		{
+			m->Revolution();
+			m->computeNormals();
+			makeBuffers(m);
+			break;
+		}
 	}
 	glutPostRedisplay();
 }
@@ -377,8 +385,8 @@ void initMesh()
 
 	cout << "Reading mesh from file...\n";
 	m = new myMesh();
-	if (m->readFile("c_gear.obj")) {
-		m->triangulate(); // Optional: Triangulate the mesh first to show the gear
+	if (m->readFile("diamond.obj")) {
+		// m->triangulate(); // Optional: Triangulate the mesh first to show the gear
 		m->computeNormals();
 		makeBuffers(m);
 	}

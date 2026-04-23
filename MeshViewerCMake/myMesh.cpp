@@ -231,7 +231,7 @@ bool myMesh::readFile(std::string filename)
 	}
 
 	checkMesh();
-	normalize();
+	if (!faces.empty()) normalize();  // don't normalize profile-only meshes (e.g. for Revolution)
 
 	return true;
 }
@@ -306,6 +306,153 @@ void myMesh::splitFaceQUADS(myFace *f, myPoint3D *p)
 void myMesh::subdivisionCatmullClark()
 {
 	/**** TODO ****/
+}
+
+myHalfedge* myMesh::RevolutionMakeHE(int src_i, int dst_i, map<pair<int,int>, myHalfedge*> &twin_map)
+{
+	// make halfedge from src_i to dst_i, and set twin if exists in twin_map
+	myHalfedge *e = new myHalfedge();
+	e->source = vertices[src_i];
+	vertices[src_i]->originof = e;
+	halfedges.push_back(e);
+
+	auto key = make_pair(dst_i, src_i);
+	auto it = twin_map.find(key);
+	if (it != twin_map.end()) {
+		e->twin = it->second;
+		it->second->twin = e;
+	} else {
+		twin_map[make_pair(src_i, dst_i)] = e;
+	}
+	return e;
+}
+
+void myMesh::RevolutionMakeFace(myHalfedge *ea, myHalfedge *eb, myHalfedge *ec)
+{
+	//make a new face with three halfedges
+	myFace *f = new myFace();
+	ea->next = eb; eb->prev = ea;
+	eb->next = ec; ec->prev = eb;
+	ec->next = ea; ea->prev = ec;
+	ea->adjacent_face = eb->adjacent_face = ec->adjacent_face = f;
+	f->adjacent_halfedge = ea;
+	faces.push_back(f);
+}
+
+void myMesh::Revolution()
+{
+	if (faces.size() > 0) {
+		cout << "Error! Revolution only works for meshes without faces!\n";
+		return;
+	}
+	if (vertices.size() < 2) {
+		cout << "Error! Need at least 2 vertices for revolution!\n";
+		return;
+	}
+
+	int steps = 10;
+	int size = (int)vertices.size(); // original profile vertex count
+	double angleStep = 2.0 * M_PI / steps;
+
+	// create rotated vertex columns.
+	for (int i = 1; i < steps; i++) {
+		double rad = i * angleStep;
+		double cosA = cos(rad);
+		double sinA = sin(rad);
+		for (int j = 0; j < size; j++) {
+			double x = vertices[j]->point->X;
+			double z = vertices[j]->point->Z;
+			myVertex *newV = new myVertex();
+			newV->point = new myPoint3D(x * cosA - z * sinA,
+			                            vertices[j]->point->Y,
+			                            x * sinA + z * cosA);
+			vertices.push_back(newV);
+		}
+	}
+
+	// helper lambda: vertex index from (column, row)
+	// got this by AI to make the code cleaner, and it works!
+	auto idx = [&](int col, int row) {
+		return (col % steps) * size + row;
+	};
+
+	// build all halfedges and faces.
+	// For each quad strip between column i and column (i+1)%steps,
+	// and each row segment j to j+1, we create 2 triangles:
+
+
+	map<pair<int,int>, myHalfedge*> twin_map;
+
+	// i struggle a lot in this part, and I asked AI to reform those idxs, it wrote a lambda for me and it works
+	for (int i = 0; i < steps; i++) {
+		int next_i = (i + 1) % steps;
+		for (int j = 0; j < size - 1; j++) {
+			int A = idx(i,      j);
+			int B = idx(next_i, j);
+			int C = idx(next_i, j + 1);
+			int D = idx(i,      j + 1);
+
+			// Triangle 1: A -> B -> C
+			myHalfedge *e_AB = RevolutionMakeHE(A, B, twin_map);
+			myHalfedge *e_BC = RevolutionMakeHE(B, C, twin_map);
+			myHalfedge *e_CA = RevolutionMakeHE(C, A, twin_map);
+			RevolutionMakeFace(e_AB, e_BC, e_CA);
+
+			// Triangle 2: A -> C -> D
+			myHalfedge *e_AC = RevolutionMakeHE(A, C, twin_map);
+			myHalfedge *e_CD = RevolutionMakeHE(C, D, twin_map);
+			myHalfedge *e_DA = RevolutionMakeHE(D, A, twin_map);
+			RevolutionMakeFace(e_AC, e_CD, e_DA);
+		}
+	}
+
+	cout << "Revolution done (side strips): " << vertices.size() << " vertices, "
+	     << halfedges.size() << " halfedges, "
+	     << faces.size() << " faces.\n";
+
+	// Top cap: polygon face at row 0.
+	// Strip top edges go col(i) → col(i+1), so cap edges must go col(i+1) → col(i) to be twins.
+	// Polygon vertex order: col(steps-1), col(steps-2), ..., col(0)
+	{
+		myFace *capFace = new myFace();
+		vector<myHalfedge*> capEdges(steps);
+		for (int i = 0; i < steps; i++) {
+			int src = idx(steps - 1 - i, 0);
+			int dst = idx(steps - 1 - ((i + 1) % steps), 0);
+			capEdges[i] = RevolutionMakeHE(src, dst, twin_map);
+			capEdges[i]->adjacent_face = capFace;
+		}
+		for (int i = 0; i < steps; i++) {
+			capEdges[i]->next = capEdges[(i + 1) % steps];
+			capEdges[(i + 1) % steps]->prev = capEdges[i];
+		}
+		capFace->adjacent_halfedge = capEdges[0];
+		faces.push_back(capFace);
+		triangulate(capFace);
+	}
+
+	// bottom cap: polygon face at row size-1.
+	{
+		int bot = size - 1;
+		myFace *capFace = new myFace();
+		vector<myHalfedge*> capEdges(steps);
+		for (int i = 0; i < steps; i++) {
+			int src = idx(i, bot);
+			int dst = idx((i + 1) % steps, bot);
+			capEdges[i] = RevolutionMakeHE(src, dst, twin_map);
+			capEdges[i]->adjacent_face = capFace;
+		}
+		for (int i = 0; i < steps; i++) {
+			capEdges[i]->next = capEdges[(i + 1) % steps];
+			capEdges[(i + 1) % steps]->prev = capEdges[i];
+		}
+		capFace->adjacent_halfedge = capEdges[0];
+		faces.push_back(capFace);
+		triangulate(capFace);
+	}
+
+	checkMesh();
+	normalize();
 }
 
 void myMesh::simplify()

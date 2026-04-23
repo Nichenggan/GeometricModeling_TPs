@@ -4,6 +4,7 @@
 #include "myVertex.h"
 #include <vector>
 #include <string>
+#include <map>
 
 class myMesh
 {
@@ -19,6 +20,7 @@ public:
 	void normalize();
 
 	void subdivisionCatmullClark();
+	void Revolution();
 
 	void splitFaceTRIS(myFace *, myPoint3D *);
 
@@ -29,8 +31,10 @@ public:
 	bool triangulate(myFace *);
 	void simplify();
 	void simplify(myVertex *);
-
 	void clear();
+
+	myHalfedge* RevolutionMakeHE(int src_i, int dst_i, std::map<std::pair<int,int>, myHalfedge*> &twin_map);
+	void RevolutionMakeFace(myHalfedge *ea, myHalfedge *eb, myHalfedge *ec);
 
 	myMesh(void);
 	~myMesh(void);
