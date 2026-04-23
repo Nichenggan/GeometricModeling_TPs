@@ -406,13 +406,7 @@ void myMesh::Revolution()
 		}
 	}
 
-	cout << "Revolution done (side strips): " << vertices.size() << " vertices, "
-	     << halfedges.size() << " halfedges, "
-	     << faces.size() << " faces.\n";
-
-	// Top cap: polygon face at row 0.
-	// Strip top edges go col(i) → col(i+1), so cap edges must go col(i+1) → col(i) to be twins.
-	// Polygon vertex order: col(steps-1), col(steps-2), ..., col(0)
+	// top cap: polygon face at row 0.
 	{
 		myFace *capFace = new myFace();
 		vector<myHalfedge*> capEdges(steps);
@@ -453,6 +447,9 @@ void myMesh::Revolution()
 
 	checkMesh();
 	normalize();
+	cout << "Revolution done (side strips): " << vertices.size() << " vertices, "
+		 << halfedges.size() << " halfedges, "
+		 << faces.size() << " faces.\n";
 }
 
 void myMesh::simplify()
