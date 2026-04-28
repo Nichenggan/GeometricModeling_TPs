@@ -24,6 +24,7 @@ void myVertex::computeNormal()
 		normal->clear();
 		int counter = 0;
 
+		int maxIter = 100000;
 		do {
 			if (step->adjacent_face && step->adjacent_face->normal) {
 				normal->dX += step->adjacent_face->normal->dX;
@@ -34,6 +35,7 @@ void myVertex::computeNormal()
 			if (!step->twin) break;  // to fix some obj issues，some of them don't have twin edge, so we just break the loop if there is no twin edge, otherwise it will cause infinite loop
 			step = step->twin->next;
 			if (!step) break;
+			if (--maxIter <= 0) break; // safety guard against broken rings after simplification
 		} while (step != h);
 
 		if (counter == 0) return;

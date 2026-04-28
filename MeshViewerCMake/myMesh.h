@@ -5,6 +5,19 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <set>
+
+// the struct to store edge record for edge collapse
+struct EdgeRecord {
+	myHalfedge* he;
+	double length;
+	std::multiset<EdgeRecord>::iterator set_it;
+
+	// must implement this operator to use EdgeRecord in a multiset
+	bool operator<(const EdgeRecord& other) const {
+		return length < other.length;
+	}
+};
 
 class myMesh
 {

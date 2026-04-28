@@ -42,6 +42,7 @@ int GLUTmouse[2] = { 0, 0 };
 vector<GLuint> buffers(NUM_BUFFERS, 0);
 vector<GLuint> vaos(NUM_BUFFERS, 0);
 unsigned int num_triangles;
+unsigned int num_edge_indices = 0;
 
 enum {
 	BUFFER_VERTICES = 0, BUFFER_NORMALS_PERFACE, BUFFER_NORMALS_PERVERTEX, BUFFER_VERTICESFORNORMALDRAWING,
@@ -135,10 +136,11 @@ void makeBuffers(myMesh *input_mesh)
 	vector <GLuint> indices_edges;
 	for (unsigned int i = 0; i<input_mesh->halfedges.size(); i++)
 	{
-		if (input_mesh->halfedges[i] == NULL || input_mesh->halfedges[i]->next->next == NULL) continue;
+		if (input_mesh->halfedges[i] == NULL || input_mesh->halfedges[i]->next == NULL || input_mesh->halfedges[i]->next->next == NULL) continue;
 		indices_edges.push_back(input_mesh->halfedges[i]->source->index);
 		indices_edges.push_back(input_mesh->halfedges[i]->next->source->index);
 	}
+	num_edge_indices = (unsigned int)indices_edges.size();
 
 	vector <GLuint> indices_vertices;
 	for (unsigned int i = 0; i<input_mesh->vertices.size(); i++)

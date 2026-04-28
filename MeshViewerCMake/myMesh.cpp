@@ -454,7 +454,173 @@ void myMesh::Revolution()
 
 void myMesh::simplify()
 {
-	/**** TODO ****/
+	//shortest edge collapse until we eliminated 20% of the vertices
+	//asked ai for the data structure to store edge records,
+	//and it suggested using a multiset to keep the edge records sorted by length
+
+	// simplify assumes triangular faces, so triangulate first
+	triangulate();
+
+	multiset<EdgeRecord> edgeRecords;
+	map<myHalfedge*, multiset<EdgeRecord>::iterator> edgeToRecord;
+	for (myHalfedge* e : halfedges) {
+		if (!e || !e->source || !e->twin || !e->twin->source) continue;
+		double length = e->source->point->dist(*(e->twin->source->point));
+		if (e < e->twin) {
+			auto it = edgeRecords.insert({e, length});
+			edgeToRecord[e] = it;
+			edgeToRecord[e->twin] = it;
+		}
+	}
+
+	//iterate untill the size we want
+	//Delete from edgeRecord + Create new relationship + Delete Vertex and Halfedges
+	double meshSize = vertices.size();
+	int targetSize = (int)(meshSize * 0.8);
+	int totalToRemove = (int)vertices.size() - targetSize;
+	int removed = 0;
+	while ((int)vertices.size() > targetSize) {
+		if (edgeRecords.empty()) break;
+		auto er = edgeRecords.begin();
+		myHalfedge* he = er->he;
+		edgeRecords.erase(er);
+		edgeToRecord.erase(he);
+		edgeToRecord.erase(he->twin);
+
+		myVertex* vA = he->source;
+		myVertex* vB = he->twin->source;
+
+		// ============ Added by AI debugging : check if collapsing this edge would cause topological issues ==============
+		vector<myVertex*> neighborsA;
+		myHalfedge* currA_check = he;
+		do {
+			if (currA_check->twin) neighborsA.push_back(currA_check->twin->source);
+			currA_check = currA_check->twin->next;
+		} while (currA_check != he && currA_check != nullptr);
+
+		vector<myVertex*> neighborsB;
+		myHalfedge* currB_check = he->twin;
+		do {
+			if (currB_check->twin) neighborsB.push_back(currB_check->twin->source);
+			currB_check = currB_check->twin->next;
+		} while (currB_check != he->twin && currB_check != nullptr);
+
+		int sharedCount = 0;
+		for (auto nA : neighborsA) {
+			for (auto nB : neighborsB) {
+				if (nA == nB) sharedCount++;
+			}
+		}
+
+		int expectedShared = 0;
+		if (he->adjacent_face) expectedShared++;
+		if (he->twin && he->twin->adjacent_face) expectedShared++;
+
+		if (sharedCount != expectedShared) {
+			continue;
+		}
+		// ============The end of the AI debugging===============
+
+		myPoint3D* newV = new myPoint3D((vA->point->X + vB->point->X) / 2,
+		                                (vA->point->Y + vB->point->Y) / 2,
+		                                (vA->point->Z + vB->point->Z) / 2);
+		vA->point = newV;
+
+		myHalfedge* start = he->twin;
+		myHalfedge* curr = start;
+		do {
+			curr->source = vA;
+			auto recIt = edgeToRecord.find(curr);
+			if (recIt != edgeToRecord.end()) {
+				edgeRecords.erase(recIt->second);
+				edgeToRecord.erase(recIt);
+				edgeToRecord.erase(curr->twin);
+			} else {
+				auto recIt2 = edgeToRecord.find(curr->twin);
+				if (recIt2 != edgeToRecord.end()) {
+					edgeRecords.erase(recIt2->second);
+					edgeToRecord.erase(recIt2);
+					edgeToRecord.erase(curr);
+				}
+			}
+			if (!curr->twin) break;
+			curr = curr->twin->next;
+		} while (curr != start);
+
+
+		myHalfedge* e_next = he->next;
+		myHalfedge* e_n_n  = e_next->next;
+		myHalfedge* t_next = he->twin->next;
+		myHalfedge* t_n_n  = t_next->next;
+
+		// erase the edge records of the 6 halfedges that will be removed, if they exist
+		for (myHalfedge* dying : {e_n_n, t_next}) {
+			auto it1 = edgeToRecord.find(dying);
+			if (it1 != edgeToRecord.end()) {
+				edgeRecords.erase(it1->second);
+				edgeToRecord.erase(it1);
+				edgeToRecord.erase(dying->twin);
+			} else {
+				auto it2 = edgeToRecord.find(dying->twin);
+				if (it2 != edgeToRecord.end()) {
+					edgeRecords.erase(it2->second);
+					edgeToRecord.erase(it2);
+					edgeToRecord.erase(dying);
+				}
+			}
+		}
+
+		myHalfedge* en_twin  = e_next->twin;
+		myHalfedge* enn_twin = e_n_n->twin;
+		en_twin->twin  = enn_twin;
+		enn_twin->twin = en_twin;
+
+		myHalfedge* tn_twin  = t_next->twin;
+		myHalfedge* tnn_twin = t_n_n->twin;
+		tn_twin->twin  = tnn_twin;
+		tnn_twin->twin = tn_twin;
+
+		vA->originof = enn_twin;
+
+		//delete the collapsed vertex, 2 faces and 6 halfedges
+		vertices.erase(find(vertices.begin(), vertices.end(), vB));
+		faces.erase(find(faces.begin(), faces.end(), he->adjacent_face));
+		faces.erase(find(faces.begin(), faces.end(), he->twin->adjacent_face));
+		halfedges.erase(find(halfedges.begin(), halfedges.end(), he));
+		halfedges.erase(find(halfedges.begin(), halfedges.end(), he->twin));
+		halfedges.erase(find(halfedges.begin(), halfedges.end(), e_next));
+		halfedges.erase(find(halfedges.begin(), halfedges.end(), e_n_n));
+		halfedges.erase(find(halfedges.begin(), halfedges.end(), t_next));
+		halfedges.erase(find(halfedges.begin(), halfedges.end(), t_n_n));
+
+
+		//update the edge records
+		myHalfedge* startA = vA->originof;
+		myHalfedge* currA  = startA;
+		do {
+			if (!currA || !currA->twin) break;
+			if (edgeToRecord.find(currA)       == edgeToRecord.end() &&
+			    edgeToRecord.find(currA->twin) == edgeToRecord.end()) {
+				double length = currA->source->point->dist(*(currA->twin->source->point));
+				myHalfedge* key = (currA < currA->twin) ? currA : currA->twin;
+				auto it = edgeRecords.insert({key, length});
+				edgeToRecord[currA]       = it;
+				edgeToRecord[currA->twin] = it;
+			}
+			currA = currA->twin->next;
+		} while (currA != startA);
+
+		// Added the print progress by AI, because there was so many errors
+		removed++;
+		int barWidth = 40;
+		float progress = (float)removed / totalToRemove;
+		int filled = (int)(barWidth * progress);
+		cout << "\rSimplifying [";
+		for (int i = 0; i < barWidth; i++) cout << (i < filled ? '#' : '-');
+		cout << "] " << removed << "/" << totalToRemove << "  " << flush;
+	}
+	cout << "\nSimplification done.\n";
+	checkMesh();
 }
 
 void myMesh::simplify(myVertex *)

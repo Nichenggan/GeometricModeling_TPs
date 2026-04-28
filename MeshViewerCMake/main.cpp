@@ -158,6 +158,8 @@ void menu(int item)
 	case MENU_SIMPLIFY:
  	{
 			m->simplify();
+			m->computeNormals();
+			makeBuffers(m);
 			break;
  	}
 	case MENU_REVOLUTION:
@@ -239,7 +241,7 @@ void display()
 		color[0] = 0.0f, color[1] = 0.0f, color[2] = 0.0f, color[3] = 1.0f;		
         glUniform4fv(glGetUniformLocation(shaderprogram, "kd"), 1, &color[0]);
 		glBindVertexArray(vaos[VAO_EDGES]);
-		glDrawElements(GL_LINES, m->halfedges.size()*2, GL_UNSIGNED_INT, 0);
+		glDrawElements(GL_LINES, num_edge_indices, GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
 	}
 
@@ -385,7 +387,7 @@ void initMesh()
 
 	cout << "Reading mesh from file...\n";
 	m = new myMesh();
-	if (m->readFile("diamond.obj")) {
+	if (m->readFile("hand.obj")) {
 		// m->triangulate(); // Optional: Triangulate the mesh first to show the gear
 		m->computeNormals();
 		makeBuffers(m);
