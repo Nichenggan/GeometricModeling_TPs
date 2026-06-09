@@ -387,7 +387,7 @@ void initMesh()
 
 	cout << "Reading mesh from file...\n";
 	m = new myMesh();
-	if (m->readFile("hand.obj")) {
+	if (m->readFile("cube.obj")) {
 		// m->triangulate(); // Optional: Triangulate the mesh first to show the gear
 		m->computeNormals();
 		makeBuffers(m);

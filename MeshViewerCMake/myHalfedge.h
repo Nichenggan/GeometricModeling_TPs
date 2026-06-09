@@ -14,7 +14,8 @@ public:
 	myFace *adjacent_face; 
 	myHalfedge *next;  
 	myHalfedge *prev;  
-	myHalfedge *twin;  
+	myHalfedge *twin;
+	myPoint3D* edgePoint; //used for subdivision
 
 	int index; //use as you wish.
 

@@ -305,12 +305,190 @@ void myMesh::splitFaceQUADS(myFace *f, myPoint3D *p)
 
 void myMesh::subdivisionCatmullClark()
 {
-	/**** TODO ****/
+	if (faces.empty()) return;
+
+	// I rebuild the mesh instead of changing all old halfedges directly.
+	// It is easier for me to avoid broken next/prev/twin pointers this way.
+	map<myVertex*, int> oldVertexIndex;
+	map<myFace*, myPoint3D> facePoints;
+	map<myHalfedge*, myPoint3D> edgePoints;
+	map<myVertex*, myPoint3D> movedOldPoints;
+
+	for (unsigned int i = 0; i < vertices.size(); i++) {
+		oldVertexIndex[vertices[i]] = (int)i;
+	}
+
+	//compute the face points
+	for (auto face: faces) {
+		myHalfedge *it = face->adjacent_halfedge;
+		double newX = 0, newY = 0, newZ = 0;
+		int count = 0;
+		do {
+			newX += it->source->point->X;
+			newY += it->source->point->Y;
+			newZ += it->source->point->Z;
+			count++;
+			it = it->next;
+		} while (it != face->adjacent_halfedge);
+		facePoints[face] = myPoint3D(newX / count, newY / count, newZ / count);
+	}
+
+	//compute the edge points, use the two vertices and the two face points
+	for (auto halfedge: halfedges) {
+		if (edgePoints.find(halfedge) != edgePoints.end()) continue;
+		myPoint3D *p1 = halfedge->source->point;
+		myPoint3D *p2 = halfedge->next->source->point;
+		double newX = p1->X + p2->X;
+		double newY = p1->Y + p2->Y;
+		double newZ = p1->Z + p2->Z;
+		int count = 2;
+
+		if (halfedge->adjacent_face) {
+			myPoint3D fp = facePoints[halfedge->adjacent_face];
+			newX += fp.X; newY += fp.Y; newZ += fp.Z;
+			count++;
+		}
+		if (halfedge->twin && halfedge->twin->adjacent_face) {
+			myPoint3D fp = facePoints[halfedge->twin->adjacent_face];
+			newX += fp.X; newY += fp.Y; newZ += fp.Z;
+			count++;
+		}
+
+		myPoint3D ep(newX / count, newY / count, newZ / count);
+		edgePoints[halfedge] = ep;
+		if (halfedge->twin) edgePoints[halfedge->twin] = ep;
+	}
+
+	//compute the new old vertex points
+	for (auto vertex: vertices) {
+		double Qx = 0, Qy = 0, Qz = 0;
+		double Rx = 0, Ry = 0, Rz = 0;
+		int n = 0;
+		myHalfedge *it = vertex->originof;
+		if (!it) {
+			movedOldPoints[vertex] = *vertex->point;
+			continue;
+		}
+
+		int maxLoop = (int)halfedges.size() + 5;// avoid infinite loop
+		do {
+			myPoint3D fp = facePoints[it->adjacent_face];
+			myPoint3D ep = edgePoints[it];
+			Qx += fp.X; Qy += fp.Y; Qz += fp.Z;
+			Rx += ep.X; Ry += ep.Y; Rz += ep.Z;
+			n++;
+			if (!it->twin) break;
+			it = it->twin->next;
+			maxLoop--;
+		} while (it != vertex->originof && maxLoop > 0);
+
+		if (n == 0) {
+			movedOldPoints[vertex] = *vertex->point;
+			continue;
+		}
+
+		Qx /= n; Qy /= n; Qz /= n;
+		Rx /= n; Ry /= n; Rz /= n;
+
+		// simplified Catmull-Clark old vertex formula
+		double newX = (Qx + 2.0 * Rx + (n - 3.0) * vertex->point->X) / n;
+		double newY = (Qy + 2.0 * Ry + (n - 3.0) * vertex->point->Y) / n;
+		double newZ = (Qz + 2.0 * Rz + (n - 3.0) * vertex->point->Z) / n;
+		movedOldPoints[vertex] = myPoint3D(newX, newY, newZ);
+	}
+
+	// checked AI for the idea of how to build the new mesh, I did the code part
+	//put all new points in one list first
+	vector<myPoint3D> newPoints;
+	map<myVertex*, int> oldPointId;
+	map<myHalfedge*, int> edgePointId;
+	map<myFace*, int> facePointId;
+
+	//give everyone an id
+	for (auto vertex: vertices) {
+		oldPointId[vertex] = (int)newPoints.size();
+		newPoints.push_back(movedOldPoints[vertex]);
+	}
+
+	for (auto halfedge: halfedges) {
+		if (edgePointId.find(halfedge) != edgePointId.end()) continue;
+		int id = (int)newPoints.size();
+		edgePointId[halfedge] = id;
+		if (halfedge->twin) edgePointId[halfedge->twin] = id;
+		newPoints.push_back(edgePoints[halfedge]);
+	}
+
+	for (auto face: faces) {
+		facePointId[face] = (int)newPoints.size();
+		newPoints.push_back(facePoints[face]);
+	}
+
+	//make the new quad faces by index before deleting the old mesh
+	vector<vector<int> > newFaceIds;
+	for (auto face: faces) {
+		myHalfedge *start = face->adjacent_halfedge;
+		myHalfedge *it = start;
+		do {
+			vector<int> q;
+			q.push_back(oldPointId[it->source]);
+			q.push_back(edgePointId[it]);
+			q.push_back(facePointId[face]);
+			q.push_back(edgePointId[it->prev]);
+			newFaceIds.push_back(q);
+			it = it->next;
+		} while (it != start);
+	}
+
+	clear();
+
+	//create new vertices
+	for (unsigned int i = 0; i < newPoints.size(); i++) {
+		myVertex *v = new myVertex();
+		v->point = new myPoint3D(newPoints[i].X, newPoints[i].Y, newPoints[i].Z);
+		vertices.push_back(v);
+	}
+
+	//create new faces and connect twins like readFile
+	map<pair<int, int>, myHalfedge *> twin_map;
+	for (unsigned int i = 0; i < newFaceIds.size(); i++) {
+		myFace *f = new myFace();
+		myHalfedge *hedges[4];
+
+		for (int j = 0; j < 4; j++) {
+			int v_start = newFaceIds[i][j];
+			int v_end = newFaceIds[i][(j + 1) % 4];
+			myHalfedge *e = new myHalfedge();
+			hedges[j] = e;
+			e->source = vertices[v_start];
+			vertices[v_start]->originof = e;
+			e->adjacent_face = f;
+			halfedges.push_back(e);
+
+			auto it = twin_map.find(make_pair(v_end, v_start));
+			if (it != twin_map.end()) {
+				e->twin = it->second;
+				it->second->twin = e;
+			} else {
+				twin_map[make_pair(v_start, v_end)] = e;
+			}
+		}
+
+		for (int j = 0; j < 4; j++) {
+			hedges[j]->next = hedges[(j + 1) % 4];
+			hedges[(j + 1) % 4]->prev = hedges[j];
+		}
+		f->adjacent_halfedge = hedges[0];
+		faces.push_back(f);
+	}
+
+	checkMesh();
+	computeNormals();
 }
 
 myHalfedge* myMesh::RevolutionMakeHE(int src_i, int dst_i, map<pair<int,int>, myHalfedge*> &twin_map)
 {
 	// make halfedge from src_i to dst_i, and set twin if exists in twin_map
+	// no AI here, I came up with this genius idea, but asked AI for the implementation details like make_pair
 	myHalfedge *e = new myHalfedge();
 	e->source = vertices[src_i];
 	vertices[src_i]->originof = e;
@@ -383,7 +561,8 @@ void myMesh::Revolution()
 
 	map<pair<int,int>, myHalfedge*> twin_map;
 
-	// i struggle a lot in this part, and I asked AI to reform those idxs, it wrote a lambda for me and it works
+	// i struggle a lot in this part, and I asked AI to reform those idxs, it wrote a lambda function for me as above
+	// and I used it below
 	for (int i = 0; i < steps; i++) {
 		int next_i = (i + 1) % steps;
 		for (int j = 0; j < size - 1; j++) {
@@ -490,6 +669,7 @@ void myMesh::simplify()
 		myVertex* vA = he->source;
 		myVertex* vB = he->twin->source;
 
+		//I added this part by AI just for debugging, I suffered a lot in this
 		// ============ Added by AI debugging : check if collapsing this edge would cause topological issues ==============
 		vector<myVertex*> neighborsA;
 		myHalfedge* currA_check = he;
@@ -570,6 +750,7 @@ void myMesh::simplify()
 			}
 		}
 
+
 		myHalfedge* en_twin  = e_next->twin;
 		myHalfedge* enn_twin = e_n_n->twin;
 		en_twin->twin  = enn_twin;
@@ -583,6 +764,7 @@ void myMesh::simplify()
 		vA->originof = enn_twin;
 
 		//delete the collapsed vertex, 2 faces and 6 halfedges
+		// I wrote here roughly, and tons of bugs, asked AI to add the detail I missed
 		vertices.erase(find(vertices.begin(), vertices.end(), vB));
 		faces.erase(find(faces.begin(), faces.end(), he->adjacent_face));
 		faces.erase(find(faces.begin(), faces.end(), he->twin->adjacent_face));
@@ -801,4 +983,3 @@ bool myMesh::triangulate(myFace *f)
 	// If we reached here the face has been (or attempted to be) triangulated
 	return true;
 }
-
