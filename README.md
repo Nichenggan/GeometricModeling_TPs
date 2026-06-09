@@ -1,5 +1,4 @@
 # Mesh Viewer Project
-===================
 
 This is my mesh viewer project using a half-edge data structure.
 The main work is in `myMesh`, may modify other files.
