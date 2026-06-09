@@ -43,7 +43,7 @@ I completed triangulation using the ear clipping algorithm.
 
 ### 5. Half-edge data structure tests
 
-I completed tests for the half-edge structure in `checkMesh`.
+I completed tests for the half-edge structure in `checkMesh`, these tests will run automatically when the program begins.
 
 The tests check:
 
